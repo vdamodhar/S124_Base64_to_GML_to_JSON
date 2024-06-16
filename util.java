@@ -71,8 +71,7 @@ public class util {
         JSONObject nwJSONObject = new JSONObject();
         JSONObject nwDatasetObject = new JSONObject();
         JSONObject nwPreambleObject = new JSONObject();
-        JSONObject nwPartObject = new JSONObject();
-        
+        JSONObject nwPartObject = new JSONObject();       
 
 		for (int i = 0; i < docNodList.getLength(); i++) {
 			Node docNode = docNodList.item(i);
