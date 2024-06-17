@@ -71,7 +71,8 @@ public class util {
         JSONObject nwJSONObject = new JSONObject();
         JSONObject nwDatasetObject = new JSONObject();
         JSONObject nwPreambleObject = new JSONObject();
-        JSONObject nwPartObject = new JSONObject();       
+        JSONObject nwPartObject = new JSONObject(); 
+        JSONObject nwGeomObject = new JSONObject();       
 
 		for (int i = 0; i < docNodList.getLength(); i++) {
 			Node docNode = docNodList.item(i);
@@ -121,7 +122,7 @@ public class util {
                                     nwDatasetObject.put("updateNumber", value);
                                 }                                    
                                 if (key.contains("id")){
-                                    nwPreambleObject.put("id", value);
+                                    nwPreambleObject.put("navwarnpreambleId", value);
                                 }                                    
                                 if (key.contains("agencyResponsibleForProduction")){
                                     nwPreambleObject.put("agencyResponsibleForProduction", value);
@@ -175,24 +176,25 @@ public class util {
                                     nwPreambleObject.put("title", value);
                                 }                                    
                                 if (key.contains("publicationTime")){
-                                    nwPreambleObject.put("publicationDate", value);
+                                    nwPreambleObject.put("publicationDate", value + "Z");
                                 }                                    
                                 if (key.contains("navwarnTypeGeneral")){
                                     nwPreambleObject.put("navwarnTypeGeneral", value);
                                 }                                    
                                 if (key.contains("intService")){
-                                    nwPreambleObject.put("IntService", value);
+                                    nwPreambleObject.put("intService", value);
                                 }
                                 nwPreambleObject.put("cancellationDate", "");
                                 if (key.contains("header")){
                                     nwPartObject.put("header", value);
                                 }                                    
                                 if (key.contains("Id")){
-                                    nwPartObject.put("id", value);
+                                    nwPartObject.put("navwarnpartId", value);
                                 }                                    
                                 if (key.contains("date")){
                                     nwPartObject.put("dateStart", value);
-                                }                                    
+                                }
+                                nwPartObject.put("informationLanguage", "eng");                                    
                                 if (key.contains("text")){
                                     nwPartObject.put("information", value);
                                 }                                    
@@ -200,21 +202,21 @@ public class util {
                                     nwPartObject.put("navwarnTypeDetails", value);
                                 }                                    
                                 if (key.contains("Id")){
-                                    nwPartObject.put("geometryId", value);
+                                    nwGeomObject.put("geometryId", value);
                                 }                                    
                                 if (key == "S100:pointProperty"){
-                                    nwPartObject.put("geometryType", "Point");
+                                    nwGeomObject.put("geometryType", "Point");
                                 }                                    
                                 if (key == "S100:curveProperty"){
-                                    nwPartObject.put("geometryType", "Line");
+                                    nwGeomObject.put("geometryType", "Line");
                                 }                                    
                                 if (key == "S100:surfaceProperty"){
-                                    nwPartObject.put("geometryType", "Polygon");  
+                                    nwGeomObject.put("geometryType", "Polygon");  
                                 }
-                                nwPartObject.put("srsName", "urn:ogc:def:crs:EPSG::4326");
-                                nwPartObject.put("srsDimension", "2"); 
+                                nwGeomObject.put("srsName", "urn:ogc:def:crs:EPSG::4326");
+                                nwGeomObject.put("srsDimension", "2"); 
                                 if (key == "gml:posList" || key == "gml:pos"){
-                                    nwPartObject.put("coordinates", value);
+                                    nwGeomObject.put("coordinates", value);
                                 }                              
                         }
                     }
@@ -225,6 +227,7 @@ public class util {
         nwJSONObject.put("S124:Dataset", nwDatasetObject);        
         nwJSONObject.put("S124:NAVWARNPreamble", nwPreambleObject); 
         nwJSONObject.put("S124:NAVWARNPart", nwPartObject); 
+        nwJSONObject.put("S124:geometry", nwGeomObject); 
         return nwJSONObject;
     }	
 
