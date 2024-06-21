@@ -1,7 +1,10 @@
-public class S124Map {
+package com.dam.map;
+
+public class Map {
 
     String key;
-    String Value;
+    String value;
+    
     public String getKey() {
         return key;
     }
@@ -9,9 +12,9 @@ public class S124Map {
         this.key = key;
     }
     public String getValue() {
-        return Value;
+        return value;
     }
-    public void setValue(String value) {
-        Value = value;
+    public void setValue(String val) {
+        value = val;
     }
 }

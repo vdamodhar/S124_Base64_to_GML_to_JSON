@@ -1,3 +1,5 @@
+package com.dam.utils;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -12,60 +14,51 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import com.dam.map.Map;
+
 import org.w3c.dom.*;
 import java.util.HashMap;
-import java.util.concurrent.*;
+import java.util.logging.Logger;
 import java.io.*;
 
-public class util {
-    int existedKey = 0;
-    public void readTXT() throws Exception{
-        String path = "D:\\NC_S100\\Sample-datasets\\S124\\";
-        String inTxtFile = "S124_SECOM.txt";
-        String content = new String(Files.readAllBytes(Paths.get(path + inTxtFile)));
-        JSONObject obj = new JSONObject(content);
-        JSONArray arr = obj.getJSONArray("dataResponseObject");       
+public class Utils {
+    
+    Logger logger = Logger.getLogger(getClass().getName());
 
-        for(int i=0; i<arr.length()-1;i++){
-            JSONObject obj2 = arr.getJSONObject(i);
-            String arr2 = obj2.getString("data");            
-            String decoded = base64toString(arr2);            
-            saveFile(decoded, path + "sample_" + i + ".gml");
-            TimeUnit.SECONDS.sleep(5);
-            org.w3c.dom.Document GMLdoc = openGML(path + "sample_" + i + ".gml"); 
-            if (GMLdoc != null){
-                JSONObject jsonObject = parseGMLtoJSON(GMLdoc);
-                saveJSONFile(jsonObject, path + "sample_" + i + ".json");
-            }
-        } 
+    public String readJSONTextFile(String path, String inTxtFile) throws Exception{        
+        return new String(Files.readAllBytes(Paths.get(path + inTxtFile)));
     }
 
-    private String base64toString(String base64){
+    public JSONArray jsonMainArray(String content){
+        JSONObject jsonMainObj = new JSONObject(content);
+        return jsonMainObj.getJSONArray("dataResponseObject");    
+    }   
+
+    public String base64toString(String base64){
         byte[] decoded = Base64.getDecoder().decode(base64); 
-        String strDecoder = new String(decoded, StandardCharsets.UTF_8);
-        return strDecoder;
+        return new String(decoded, StandardCharsets.UTF_8);
     }
 
-    private void saveFile(String decoded, String path) throws IOException{
+    public void saveGmlFile(String decoded, String path) throws IOException{
         Files.write( Paths.get(path), decoded.getBytes());
     }
 
-    private org.w3c.dom.Document openGML(String filePath) throws ParserConfigurationException, SAXException, IOException {
+    public org.w3c.dom.Document readGmlFile(String filePath) throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = null;
         try {            
             builder = factory.newDocumentBuilder();
             InputSource source = new InputSource(filePath);
             source.setEncoding(StandardCharsets.UTF_8.displayName());
-            org.w3c.dom.Document doc = builder.parse(source);
-            return doc;
+            return builder.parse(source);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }    
 
-    private JSONObject parseGMLtoJSON(org.w3c.dom.Document doc)throws Exception {
+    public JSONObject parseGMLtoJSON(org.w3c.dom.Document doc)throws Exception {
         doc.getDocumentElement().normalize();
         org.w3c.dom.NodeList docNodList = doc.getChildNodes();
         JSONObject nwJSONObject = new JSONObject();
@@ -84,15 +77,17 @@ public class util {
 				for (int j = 0; j < fistNodeList.getLength(); j++) {
 					Node memNode = fistNodeList.item(j);
                     
-					ArrayList<S124Map> memNodAtts = getMemNodeAtts(memNode);
+					ArrayList<Map> memNodAtts = getMemNodeAtts(memNode);
 
-					if (memNodAtts.size() != 0) {					
+					if (!memNodAtts.isEmpty()) {		
+                        String key = "";
+                        String value = "";			
                         
 						for (int k=0; k< memNodAtts.size(); k++){
-							String key = memNodAtts.get(k).getKey();
-							String value = memNodAtts.get(k).getValue();
+							key = memNodAtts.get(k).getKey();
+							value = memNodAtts.get(k).getValue();
 
-                                System.out.println(key + ": " + value);
+                                logger.info(key + ": " + value);
                                 
                                 if (key.contains("datasetFileIdentifier")){
                                     nwDatasetObject.put("datasetFileIdentifier", value);
@@ -102,10 +97,7 @@ public class util {
                                 }                                                                   
                                 if (key.contains("datasetReferenceDate")){
                                     nwDatasetObject.put("datasetReferenceDate", value);                                
-                                }                                    
-                                if (key.contains("datasetReferenceDate")){
-                                    nwDatasetObject.put("datasetReferenceDate", value);
-                                }                                    
+                                }                                   
                                 if (key.contains("datasetLanguage")){
                                     nwDatasetObject.put("datasetLanguage", value);   
                                 }                                                                 
@@ -204,18 +196,18 @@ public class util {
                                 if (key.contains("Id")){
                                     nwGeomObject.put("geometryId", value);
                                 }                                    
-                                if (key == "S100:pointProperty"){
+                                if (key.equals("S100:pointProperty")){
                                     nwGeomObject.put("geometryType", "Point");
                                 }                                    
-                                if (key == "S100:curveProperty"){
+                                if (key.equals("S100:curveProperty")){
                                     nwGeomObject.put("geometryType", "Line");
                                 }                                    
-                                if (key == "S100:surfaceProperty"){
+                                if (key.equals("S100:surfaceProperty")){
                                     nwGeomObject.put("geometryType", "Polygon");  
                                 }
                                 nwGeomObject.put("srsName", "urn:ogc:def:crs:EPSG::4326");
                                 nwGeomObject.put("srsDimension", "2"); 
-                                if (key == "gml:posList" || key == "gml:pos"){
+                                if (key.equals("gml:posList") || key.equals("gml:pos")){
                                     nwGeomObject.put("coordinates", value);
                                 }                              
                         }
@@ -240,35 +232,34 @@ public class util {
 				nodeAttributes.put("id", node.getAttributes().getNamedItem("gml:id").getTextContent());
 			}
 		} catch (Exception e) {
-			System.out.println("id not available for this node");
+			logger.info("Id not available for this node");
 		}
 
 		return nodeAttributes;
 	}
 
-    private ArrayList<S124Map> getMemNodeAtts(Node node) {		
-        ArrayList<S124Map> nodeAttributes1 = new ArrayList<>();
+    private ArrayList<Map> getMemNodeAtts(Node node) {		
+        ArrayList<Map> nodeAttributes1 = new ArrayList<>();
 		NodeList subNodeList = node.getChildNodes();
 
 		try {
-            S124Map map = new S124Map();
+            Map map = new Map();
             map.setKey("id");
             map.setValue(subNodeList.item(1).getAttributes().getNamedItem("gml:id").getTextContent());
             nodeAttributes1.add(map);
 		} catch (Exception e) {
-			System.out.println("id not available for this node");
+			logger.info("id not available for this node");
 
 		}
 		nodeToHashmap(subNodeList, nodeAttributes1);
 		return nodeAttributes1;
 	}
 
-	private void nodeToHashmap(NodeList nodeList, ArrayList<S124Map> nodeAttributes) {
+	private void nodeToHashmap(NodeList nodeList, ArrayList<Map> nodeAttributes) {
         
 		for (int i = 0; i < nodeList.getLength(); i++) {            
-			if (nodeList.item(i).getNodeType() == 1) {
-                System.out.println(nodeList.item(i).getTextContent());
-                S124Map map = new S124Map();
+			if (nodeList.item(i).getNodeType() == 1) {                
+                Map map = new Map();
                 map.setKey(nodeList.item(i).getNodeName());                    
                 if (nodeList.item(i).getTextContent().contains("    ")){
                     map.setValue("");
@@ -285,15 +276,14 @@ public class util {
 		}
 	}
 
-    private void saveJSONFile(JSONObject jsonObject, String filePath){
-        try {
+    public void saveJSONFile(JSONObject jsonObject, String filePath){        
+        try {            
             FileWriter file = new FileWriter(filePath);
             file.write(jsonObject.toString(1));
             file.close();
         } catch (Exception e) {
-            System.out.println("Failed to create JSON");
+            logger.info("Failed to create JSON");
         }
-
     }
 }
 
